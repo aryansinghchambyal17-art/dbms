@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#101827">
+<title>ATLAS | Academic Records Intelligence</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <a class="brand" href="#"><span class="brand-icon">A</span><span>ATLAS<small>ACADEMIC SYSTEMS</small></span></a>
+    <div class="workspace-label">WORKSPACE</div>
+    <nav class="nav">
+      <button class="nav-item active" data-view="overview"><span>◫</span> Overview</button>
+      <button class="nav-item" data-view="students"><span>♙</span> Student registry</button>
+      <button class="nav-item" data-view="marks"><span>▤</span> Assessment records</button>
+      <button class="nav-item" data-view="interchange"><span>⇄</span> Marks interchange</button>
+    </nav>
+    <div class="sidebar-bottom">
+      <div class="connection-card"><span class="connection-dot"></span><div><b>Data source</b><small>Google Sheets connector</small></div></div>
+      <a class="sheet-link" id="sheetLink" target="_blank" rel="noopener">↗ Open live spreadsheet</a>
+      <div class="sidebar-foot">ATLAS SYSTEMS <span>v1.0.0</span></div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <div class="crumb">ACADEMIC OPERATIONS <span>/</span> <b id="crumbName">Overview</b></div>
+      <div class="top-actions"><span class="env"><i></i> LIVE WORKSPACE</span><div class="avatar">AD</div></div>
+    </header>
+
+    <section class="page-head">
+      <div><div class="eyebrow">STUDENT INFORMATION SYSTEM <span>•</span> CONTROL CENTRE</div><h1 id="pageTitle">Academic overview</h1><p id="pageDesc">A consolidated view of student records, assessment data and academic activity.</p></div>
+      <button class="btn btn-quiet" id="syncBtn">↻ <span>Synchronize data</span></button>
+    </section>
+
+    <section id="overviewView" class="view">
+      <div class="metric-grid">
+        <article class="metric"><div class="metric-top"><span>REGISTERED STUDENTS</span><span class="metric-icon">♙</span></div><strong id="studentCount">—</strong><small>Unique student profiles</small></article>
+        <article class="metric"><div class="metric-top"><span>ASSESSMENT ENTRIES</span><span class="metric-icon">▤</span></div><strong id="marksCount">—</strong><small>Subject-level mark records</small></article>
+        <article class="metric"><div class="metric-top"><span>MEAN SCORE</span><span class="metric-icon">⌁</span></div><strong id="averageMarks">—</strong><small>Across recorded assessments</small></article>
+        <article class="metric"><div class="metric-top"><span>DATA INTEGRITY</span><span class="metric-icon">◇</span></div><strong class="integrity" id="integrity">—</strong><small>Registry / assessment linkage</small></article>
+      </div>
+      <div class="overview-grid">
+        <article class="surface">
+          <div class="surface-head"><div><h2>Recent student registry</h2><p>Latest profiles available in the data source</p></div><button class="text-btn" data-goto="students">View registry →</button></div>
+          <div class="table-scroll"><table><thead><tr><th>STUDENT</th><th>UNIVERSITY UID</th><th>DEPARTMENT</th><th>SEMESTER</th></tr></thead><tbody id="recentTable"><tr><td colspan="4" class="empty">Synchronize to retrieve records.</td></tr></tbody></table></div>
+        </article>
+        <article class="surface activity">
+          <div class="surface-head"><div><h2>System capabilities</h2><p>Core database workflows</p></div></div>
+          <div class="capability"><span class="cap-icon">＋</span><div><b>Record insertion</b><small>Create student and assessment entries</small></div><em>INSERT</em></div>
+          <div class="capability"><span class="cap-icon">⌕</span><div><b>Data retrieval</b><small>Search, filter and inspect records</small></div><em>SELECT</em></div>
+          <div class="capability"><span class="cap-icon">↻</span><div><b>Record mutation</b><small>Modify existing academic data</small></div><em>UPDATE</em></div>
+          <div class="capability"><span class="cap-icon">×</span><div><b>Record deletion</b><small>Remove profiles and dependent entries</small></div><em>DELETE</em></div>
+        </article>
+      </div>
+      <div class="notice"><span>i</span><div><b>Architecture note</b><p>ATLAS uses Google Sheets as its persistence layer and Google Apps Script as its server-side API. The interface exposes database-style operations; it is not a SQL execution engine.</p></div></div>
+    </section>
+
+    <section id="studentsView" class="view hidden">
+      <article class="surface">
+        <div class="surface-head"><div><h2>Student registry</h2><p>Manage canonical student profiles and identity attributes.</p></div><button class="btn btn-primary" id="newStudentBtn">＋ Add student</button></div>
+        <div id="studentEditor" class="editor hidden"><div class="editor-title"><b id="studentEditorTitle">Create student profile</b><button class="close-btn" data-close="studentEditor">×</button></div>
+          <form id="studentForm" class="form-grid">
+            <label>University UID<input name="uid" required placeholder="e.g. 25BAI70001"></label>
+            <label>Full name<input name="name" required placeholder="Student full name"></label>
+            <label>Institutional email<input name="email" type="email" placeholder="name@university.edu"></label>
+            <label>Department<input name="department" placeholder="CSE / AIML / ECE"></label>
+            <label>Semester<input name="semester" type="number" min="1" max="12" placeholder="e.g. 3"></label>
+            <div class="form-actions"><button type="button" class="btn btn-quiet" data-close="studentEditor">Cancel</button><button class="btn btn-primary" type="submit">Save profile</button></div>
+          </form>
+        </div>
+        <div class="table-tools"><input id="studentSearch" class="search" placeholder="⌕  Search UID, name, email or department"><span id="studentResultCount" class="result-count"></span></div>
+        <div class="table-scroll"><table><thead><tr><th>UNIVERSITY UID</th><th>STUDENT NAME</th><th>EMAIL</th><th>DEPARTMENT</th><th>SEMESTER</th><th>OPERATIONS</th></tr></thead><tbody id="studentsTable"><tr><td colspan="6" class="empty">Loading registry…</td></tr></tbody></table></div>
+      </article>
+    </section>
+
+    <section id="marksView" class="view hidden">
+      <article class="surface">
+        <div class="surface-head"><div><h2>Assessment ledger</h2><p>Subject-wise marks, score normalization and record maintenance.</p></div><button class="btn btn-primary" id="newMarksBtn">＋ Record marks</button></div>
+        <div id="marksEditor" class="editor hidden"><div class="editor-title"><b>Assessment record</b><button class="close-btn" data-close="marksEditor">×</button></div>
+          <form id="marksForm" class="form-grid">
+            <label>Student UID<input name="uid" required placeholder="Registered UID"></label>
+            <label>Subject / course<input name="subject" required placeholder="e.g. Database Management Systems"></label>
+            <label>Marks obtained<input name="marks" type="number" min="0" step="0.01" required placeholder="0.00"></label>
+            <label>Maximum marks<input name="maxMarks" type="number" min="0.01" step="0.01" value="100" required></label>
+            <div class="form-actions"><button type="button" class="btn btn-quiet" data-close="marksEditor">Cancel</button><button class="btn btn-primary" type="submit">Commit assessment</button></div>
+          </form>
+        </div>
+        <div class="table-tools"><input id="marksSearch" class="search" placeholder="⌕  Filter by UID or subject"><span id="marksResultCount" class="result-count"></span></div>
+        <div class="table-scroll"><table><thead><tr><th>STUDENT UID</th><th>SUBJECT</th><th>MARKS</th><th>MAXIMUM</th><th>ATTAINMENT</th><th>OPERATIONS</th></tr></thead><tbody id="marksTable"><tr><td colspan="6" class="empty">Loading assessment ledger…</td></tr></tbody></table></div>
+      </article>
+    </section>
+
+    <section id="interchangeView" class="view hidden">
+      <article class="surface interchange-surface">
+        <div class="surface-head"><div><h2>Assessment value interchange</h2><p>Controlled exchange of marks between two student records for a common subject.</p></div><span class="tag">TRANSACTION WORKFLOW</span></div>
+        <form id="swapForm" class="swap-form">
+          <label>Subject identifier<input name="subject" required placeholder="e.g. DBMS"></label>
+          <div class="swap-row"><label>Source student UID<input name="uid1" required placeholder="UID / Student A"></label><div class="swap-symbol">⇄</div><label>Target student UID<input name="uid2" required placeholder="UID / Student B"></label></div>
+          <div class="swap-footer"><p>Precondition: both students must have an existing marks entry for the selected subject. Only the marks values are exchanged.</p><button class="btn btn-primary" type="submit">⇄ Execute interchange</button></div>
+        </form>
+      </article>
+      <div class="notice"><span>!</span><div><b>Integrity constraint</b><p>The interchange operation is validated server-side and guarded by a script lock to reduce concurrent write conflicts. Review the confirmation prompt before committing.</p></div></div>
+    </section>
+
+    <div id="toast" class="toast" role="status"></div>
+    <footer><span>ATLAS · ACADEMIC RECORDS INTELLIGENCE</span><span>DATA LAYER: GOOGLE SHEETS</span></footer>
+  </main>
+</div>
+<script>
+/* CONFIGURATION: paste the deployed Apps Script Web App URL below. */
+const API_URL = "https://script.google.com/macros/s/AKfycbxFDEzhRhiksXpZ3v01zCxCU4VqQHXnFSMGLYr6QcuhUhMQM6dK8_EbYMdopn-jdhFgvA/exec";
+const SHEET_URL = "https://docs.google.com/spreadsheets/d/1Pftvpnb3rHn2sqWD9sVX960Y3Gz0cCmDmUqAGhlEs39BHvKHox_vW-lD/edit";
+let students=[], marks=[], studentMode="create", marksMode="create";
+
+const $ = id => document.getElementById(id);
+const esc = v => String(v ?? "").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const jsq = v => String(v).replace(/\\/g,"\\\\").replace(/'/g,"\\'");
+function toast(message,error=false){const t=$("toast");t.textContent=message;t.className="toast show"+(error?" error":"");clearTimeout(toast.timer);toast.timer=setTimeout(()=>t.className="toast",4200);}
+function api(action,params={}){return new Promise((resolve,reject)=>{
+  if(!API_URL.startsWith("https://")){reject(Error("Configure API_URL in index.html with your deployed Apps Script Web App URL."));return;}
+  const cb="atlas_"+Date.now()+"_"+Math.floor(Math.random()*100000),q=new URLSearchParams({action,...params,callback:cb}),s=document.createElement("script");
+  const timer=setTimeout(()=>finish(Error("Backend request timed out.")),18000);
+  function finish(err,data){clearTimeout(timer);delete window[cb];s.remove();err?reject(err):resolve(data);}
+  window[cb]=data=>data?.success?finish(null,data):finish(Error(data?.error||"Backend operation failed."));
+  s.onerror=()=>finish(Error("Could not reach Apps Script. Verify the deployment URL and access settings."));
+  s.src=API_URL+(API_URL.includes("?")?"&":"?")+q.toString();document.body.appendChild(s);
+});}
+function navigate(view){
+  document.querySelectorAll(".view").forEach(v=>v.classList.toggle("hidden",v.id!==view+"View"));
+  document.querySelectorAll(".nav-item").forEach(b=>b.classList.toggle("active",b.dataset.view===view));
+  const names={overview:["Overview","Academic overview","A consolidated view of student records, assessment data and academic activity."],students:["Student registry","Student registry","Manage canonical student profiles and identity attributes."],marks:["Assessment records","Assessment ledger","Subject-wise marks, score normalization and record maintenance."],interchange:["Marks interchange","Assessment value interchange","Execute a validated exchange of marks between two student records."]};
+  $("crumbName").textContent=names[view][0];$("pageTitle").textContent=names[view][1];$("pageDesc").textContent=names[view][2];
+}
+document.querySelectorAll(".nav-item").forEach(b=>b.addEventListener("click",()=>navigate(b.dataset.view)));
+document.querySelectorAll("[data-goto]").forEach(b=>b.addEventListener("click",()=>navigate(b.dataset.goto)));
+document.querySelectorAll("[data-close]").forEach(b=>b.addEventListener("click",()=>$(b.dataset.close).classList.add("hidden")));
+$("sheetLink").href=SHEET_URL;
+$("sheetLink").addEventListener("click",e=>{if(!SHEET_URL.startsWith("https://")){e.preventDefault();toast("Configure the spreadsheet URL.",true);}});
+async function sync(){
+  try{const [s,m]=await Promise.all([api("listStudents"),api("listMarks")]);students=s.data||[];marks=m.data||[];renderAll();toast("Data synchronization completed.");}
+  catch(e){toast(e.message,true);}
+}
+function renderAll(){
+  $("studentCount").textContent=students.length;$("marksCount").textContent=marks.length;
+  const percentages=marks.filter(m=>Number(m.maxMarks)>0).map(m=>100*Number(m.marks)/Number(m.maxMarks));
+  $("averageMarks").textContent=percentages.length?(percentages.reduce((a,b)=>a+b,0)/percentages.length).toFixed(1)+"%":"—";
+  const uids=new Set(students.map(s=>String(s.uid).toLowerCase()));
+  const linked=marks.filter(m=>uids.has(String(m.uid).toLowerCase())).length;
+  $("integrity").textContent=marks.length?Math.round(linked/marks.length*100)+"%":"—";
+  $("recentTable").innerHTML=students.slice(-5).reverse().map(s=>`<tr><td>${esc(s.name)}</td><td class="mono">${esc(s.uid)}</td><td>${esc(s.department)}</td><td>${esc(s.semester)}</td></tr>`).join("")||'<tr><td colspan="4" class="empty">No student profiles available.</td></tr>';
+  renderStudents();renderMarks();
+}
+function renderStudents(){
+  const q=$("studentSearch").value.toLowerCase(),rows=students.filter(s=>[s.uid,s.name,s.email,s.department].join(" ").toLowerCase().includes(q));
+  $("studentResultCount").textContent=rows.length+" RECORDS";
+  $("studentsTable").innerHTML=rows.map(s=>`<tr><td class="mono">${esc(s.uid)}</td><td class="strong">${esc(s.name)}</td><td>${esc(s.email)}</td><td>${esc(s.department)}</td><td>${esc(s.semester)}</td><td><button class="row-action" onclick="editStudent('${jsq(s.uid)}')">Edit</button><button class="row-action danger" onclick="deleteStudent('${jsq(s.uid)}')">Delete</button></td></tr>`).join("")||'<tr><td colspan="6" class="empty">No matching student records.</td></tr>';
+}
+function renderMarks(){
+  const q=$("marksSearch").value.toLowerCase(),rows=marks.filter(m=>[m.uid,m.subject].join(" ").toLowerCase().includes(q));
+  $("marksResultCount").textContent=rows.length+" RECORDS";
+  $("marksTable").innerHTML=rows.map(m=>{const pct=Number(m.maxMarks)>0?100*Number(m.marks)/Number(m.maxMarks):0;return `<tr><td class="mono">${esc(m.uid)}</td><td class="strong">${esc(m.subject)}</td><td>${esc(m.marks)}</td><td>${esc(m.maxMarks)}</td><td><span class="score">${pct.toFixed(1)}%</span></td><td><button class="row-action" onclick="editMarks('${jsq(m.uid)}','${jsq(m.subject)}')">Edit</button></td></tr>`;}).join("")||'<tr><td colspan="6" class="empty">No matching assessment records.</td></tr>';
+}
+$("studentSearch").addEventListener("input",renderStudents);$("marksSearch").addEventListener("input",renderMarks);
+$("syncBtn").addEventListener("click",sync);
+$("newStudentBtn").addEventListener("click",()=>{studentMode="create";$("studentForm").reset();$("studentForm").elements.uid.readOnly=false;$("studentEditorTitle").textContent="Create student profile";$("studentEditor").classList.remove("hidden");});
+$("newMarksBtn").addEventListener("click",()=>{marksMode="create";$("marksForm").reset();$("marksForm").elements.uid.readOnly=false;$("marksForm").elements.subject.readOnly=false;$("marksForm").elements.maxMarks.value=100;$("marksEditor").classList.remove("hidden");});
+function editStudent(uid){const s=students.find(x=>String(x.uid)===uid);if(!s)return;studentMode="update";const f=$("studentForm");["uid","name","email","department","semester"].forEach(k=>f.elements[k].value=s[k]??"");f.elements.uid.readOnly=true;$("studentEditorTitle").textContent="Update student profile";$("studentEditor").classList.remove("hidden");}
+async function deleteStudent(uid){if(!confirm("Delete this student profile and all associated assessment entries?"))return;try{await api("deleteStudent",{uid});await sync();toast("Student profile and dependent records deleted.");}catch(e){toast(e.message,true);}}
+function editMarks(uid,subject){const m=marks.find(x=>String(x.uid)===uid&&String(x.subject).toLowerCase()===subject.toLowerCase());if(!m)return;marksMode="update";const f=$("marksForm");["uid","subject","marks","maxMarks"].forEach(k=>f.elements[k].value=m[k]??"");f.elements.uid.readOnly=true;f.elements.subject.readOnly=true;$("marksEditor").classList.remove("hidden");navigate("marks");}
+$("studentForm").addEventListener("submit",async e=>{e.preventDefault();const f=e.currentTarget,data=Object.fromEntries(new FormData(f));try{await api(studentMode==="update"?"updateStudent":"addStudent",data);$("studentEditor").classList.add("hidden");await sync();toast("Student profile committed successfully.");}catch(err){toast(err.message,true);}});
+$("marksForm").addEventListener("submit",async e=>{e.preventDefault();const f=e.currentTarget,data=Object.fromEntries(new FormData(f));try{await api(marksMode==="update"?"updateMarks":"saveMarks",data);$("marksEditor").classList.add("hidden");await sync();toast("Assessment record committed successfully.");}catch(err){toast(err.message,true);}});
+$("swapForm").addEventListener("submit",async e=>{e.preventDefault();const d=Object.fromEntries(new FormData(e.currentTarget));if(d.uid1===d.uid2){toast("Source and target UIDs must be different.",true);return;}if(!confirm(`Confirm marks interchange for ${d.subject}: ${d.uid1} ⇄ ${d.uid2}?`))return;try{const r=await api("interchangeMarks",d);await sync();toast(r.message||"Interchange completed.");}catch(err){toast(err.message,true);}});
+sync();
+</script>
+</body></html>
